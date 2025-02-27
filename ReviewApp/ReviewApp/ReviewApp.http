@@ -1,0 +1,6 @@
+@ReviewApp_HostAddress = http://localhost:5215
+
+GET {{ReviewApp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
