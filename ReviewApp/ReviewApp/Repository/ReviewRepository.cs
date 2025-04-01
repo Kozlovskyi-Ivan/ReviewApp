@@ -1,4 +1,5 @@
-﻿using ReviewApp.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using ReviewApp.Data;
 using ReviewApp.Interfaces;
 using ReviewApp.Models;
 
@@ -42,6 +43,11 @@ namespace ReviewApp.Repository
         {
             var saved = context.SaveChanges();
             return saved > 0 ? true : false;
+        }
+        public bool UpdateReview(Review review)
+        {
+            context.Reviews.Update(review);
+            return Save();
         }
     }
 }

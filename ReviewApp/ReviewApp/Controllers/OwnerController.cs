@@ -93,5 +93,35 @@ namespace ReviewApp.Controllers
             }
             return Ok("Successfully create");
         }
+
+        [HttpPut("{OwnerId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public IActionResult UpdateOwner(int OwnerId, [FromBody] OwnerDto updatedOwner)
+        {
+            if (updatedOwner == null)
+                return BadRequest(ModelState);
+
+            if (OwnerId != updatedOwner.Id)
+                return BadRequest(ModelState);
+
+            if (!ownerRepository.OwnerExists(OwnerId))
+                return NotFound();
+
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var ownerMap = mapper.Map<Owner>(updatedOwner);
+
+            if (!ownerRepository.UpdateOwner(ownerMap))
+            {
+                ModelState.AddModelError("", "Something went wrong updating category");
+                return StatusCode(500, ModelState);
+            }
+
+
+            return NoContent();
+        }
     }
 }
