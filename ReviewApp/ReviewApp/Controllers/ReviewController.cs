@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ReviewApp.Dto;
 using ReviewApp.Interfaces;
 using ReviewApp.Models;
+using ReviewApp.Repository;
 using System.Collections.Generic;
 
 namespace ReviewApp.Controllers
@@ -12,11 +13,15 @@ namespace ReviewApp.Controllers
     public class ReviewController : Controller
     {
         private readonly IReviewRepository reviewRepository;
+        private readonly IReviewerRepository reviewerRepository;
+        private readonly IPokemonRepository pokemonRepository;
         private readonly IMapper mapper;
 
-        public ReviewController(IReviewRepository reviewRepository, IMapper mapper)
+        public ReviewController(IReviewRepository reviewRepository, IReviewerRepository reviewerRepository, IPokemonRepository pokemonRepository, IMapper mapper)
         {
             this.reviewRepository = reviewRepository;
+            this.reviewerRepository = reviewerRepository;
+            this.pokemonRepository = pokemonRepository;
             this.mapper = mapper;
         }
         [HttpGet]
@@ -58,7 +63,78 @@ namespace ReviewApp.Controllers
             return Ok(review);
         }
 
+        [HttpPost]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        public IActionResult CreateReview([FromQuery] int pokemonId, [FromQuery] int reviewerId,[FromBody] ReviewDto reviewCreate)
+        {
+            if (reviewCreate == null)
+                return BadRequest(ModelState);
 
+            var review = reviewRepository.GetReview(reviewCreate.Id);
+
+            if (review != null)
+            {
+                ModelState.AddModelError("", "Review already exists");
+                return StatusCode(422, ModelState);
+            }
+
+            var reviewer = reviewerRepository.GetReviewer(reviewerId);
+
+            if (reviewer == null)
+            {
+                ModelState.AddModelError("", "Reviewer not found");
+                return StatusCode(422, ModelState);
+            }
+
+            var pokemon = pokemonRepository.GetPokemon(pokemonId);
+
+            if (pokemon == null)
+            {
+                ModelState.AddModelError("", "Pokemon not found");
+                return StatusCode(422, ModelState);
+            }
+
+            var reviewMap = mapper.Map<Review>(reviewCreate);
+
+            reviewMap.Reviewer = reviewer;
+            reviewMap.Pokemon = pokemon;
+
+            if (!reviewRepository.CreateReview(reviewMap))
+            {
+                ModelState.AddModelError("", "Something went wrong while saving");
+                return StatusCode(500, ModelState);
+            }
+            return Ok("Successfully create");
+        }
+        [HttpPut("{reviewId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public IActionResult UpdateReview(int reviewId, [FromBody] ReviewDto updatedReview)
+        {
+            if (updatedReview == null)
+                return BadRequest(ModelState);
+
+            if (reviewId != updatedReview.Id)
+                return BadRequest(ModelState);
+
+            if (!reviewRepository.ReviewExists(reviewId))
+                return NotFound();
+
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var reviewMap = mapper.Map<Review>(updatedReview);
+
+            if (!reviewRepository.UpdateReview(reviewMap))
+            {
+                ModelState.AddModelError("", "Something went wrong updating review");
+                return StatusCode(500, ModelState);
+            }
+
+            return NoContent();
+        }
 
 
     }

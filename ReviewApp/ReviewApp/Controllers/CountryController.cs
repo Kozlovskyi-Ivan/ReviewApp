@@ -59,5 +59,62 @@ namespace ReviewApp.Controllers
 
             return Ok(country);
         }
+        [HttpPost]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        public IActionResult CreateCountry([FromBody] CountryDto countryCreate)
+        {
+            if (countryCreate == null)
+                return BadRequest(ModelState);
+
+            var country = countryRepository.GetCountries()
+                .Where(c => c.Name.Trim().ToUpper() == countryCreate.Name.TrimEnd().ToUpper())
+                .FirstOrDefault();
+
+            if (country != null)
+            {
+                ModelState.AddModelError("", "Country already exists");
+                return StatusCode(422, ModelState);
+            }
+
+            var countryMap = mapper.Map<Country>(countryCreate);
+
+            if (!countryRepository.CreateCountry(countryMap))
+            {
+                ModelState.AddModelError("", "Something went wrong while saving");
+                return StatusCode(500, ModelState);
+            }
+            return Ok("Successfully create");
+        }
+
+        [HttpPut("{countryId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public IActionResult UpdateCountry(int countryId, [FromBody] CountryDto updatedCountry)
+        {
+            if (updatedCountry == null)
+                return BadRequest(ModelState);
+
+            if (countryId != updatedCountry.Id)
+                return BadRequest(ModelState);
+
+            if (!countryRepository.CountryExists(countryId))
+                return NotFound();
+
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var countryMap = mapper.Map<Country>(updatedCountry);
+
+            if (!countryRepository.UpdateCountry(countryMap))
+            {
+                ModelState.AddModelError("", "Something went wrong updating category");
+                return StatusCode(500, ModelState);
+            }
+
+
+            return NoContent();
+        }
     }
 }
