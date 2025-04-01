@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ReviewApp.Dto;
 using ReviewApp.Interfaces;
 using ReviewApp.Models;
+using ReviewApp.Repository;
 
 namespace ReviewApp.Controllers
 {
@@ -11,11 +12,13 @@ namespace ReviewApp.Controllers
     public class OwnerController : Controller
     {
         private readonly IOwnerRepository ownerRepository;
+        private readonly ICountryRepository countryRepository;
         private readonly IMapper mapper;
 
-        public OwnerController(IOwnerRepository ownerRepository, IMapper mapper)
+        public OwnerController(IOwnerRepository ownerRepository, ICountryRepository countryRepository, IMapper mapper)
         {
             this.ownerRepository = ownerRepository;
+            this.countryRepository = countryRepository;
             this.mapper = mapper;
         }
 
@@ -60,6 +63,35 @@ namespace ReviewApp.Controllers
                 return BadRequest(ModelState);
 
             return Ok(pokemon);
+        }
+        [HttpPost]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        public IActionResult CreateOwner([FromQuery] int countryId, [FromBody] OwnerDto ownerCreate)
+        {
+            if (ownerCreate == null)
+                return BadRequest(ModelState);
+
+            var owner = ownerRepository.GetOwners()
+                .Where(c => c.Name.Trim().ToUpper() == ownerCreate.Name.TrimEnd().ToUpper())
+                .FirstOrDefault();
+
+            if (owner != null)
+            {
+                ModelState.AddModelError("", "Owner already exists");
+                return StatusCode(422, ModelState);
+            }
+
+            var ownerMap = mapper.Map<Owner>(ownerCreate);
+
+            ownerMap.Country = countryRepository.GetCountry(countryId);
+
+            if (!ownerRepository.CreateOwner(ownerMap))
+            {
+                ModelState.AddModelError("", "Something went wrong while saving");
+                return StatusCode(500, ModelState);
+            }
+            return Ok("Successfully create");
         }
     }
 }

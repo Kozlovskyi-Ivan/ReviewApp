@@ -12,6 +12,13 @@ namespace ReviewApp.Repository
         {
             this.context = context;
         }
+
+        public bool CreateReview(Review review)
+        {
+            context.Reviews.Add(review);
+            return Save();
+        }
+
         public Review GetReview(int reviewId)
         {
             return context.Reviews.Where(r => r.Id == reviewId).FirstOrDefault();
@@ -30,6 +37,11 @@ namespace ReviewApp.Repository
         public bool ReviewExists(int reviewId)
         {
             return context.Reviews.Any(r => r.Id == reviewId);
+        }
+        public bool Save()
+        {
+            var saved = context.SaveChanges();
+            return saved > 0 ? true : false;
         }
     }
 }

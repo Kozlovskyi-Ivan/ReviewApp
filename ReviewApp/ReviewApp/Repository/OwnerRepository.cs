@@ -12,6 +12,13 @@ namespace ReviewApp.Repository
         {
             this.context = context;
         }
+
+        public bool CreateOwner(Owner owner)
+        {
+            context.Add(owner);
+            return Save();
+        }
+
         public Owner GetOwner(int ownerId)
         {
             return context.Owners.Where(o => o.Id == ownerId).FirstOrDefault();
@@ -35,6 +42,12 @@ namespace ReviewApp.Repository
         public bool OwnerExists(int ownerId)
         {
             return context.Owners.Any(o => o.Id == ownerId);
+        }
+
+        public bool Save()
+        {
+            var saved = context.SaveChanges();
+            return saved > 0 ? true : false;
         }
     }
 }
