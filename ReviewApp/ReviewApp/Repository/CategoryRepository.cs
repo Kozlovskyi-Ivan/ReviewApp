@@ -1,4 +1,5 @@
-﻿using ReviewApp.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using ReviewApp.Data;
 using ReviewApp.Interfaces;
 using ReviewApp.Models;
 
@@ -20,6 +21,11 @@ namespace ReviewApp.Repository
         public bool CreateCategory(Category category)
         {
             context.Categories.Add(category);
+            return Save();
+        }
+        public bool DeleteCategory(Category category)
+        {
+            context.Remove(category);
             return Save();
         }
 

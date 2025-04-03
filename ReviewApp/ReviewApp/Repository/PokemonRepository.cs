@@ -1,4 +1,5 @@
-﻿using ReviewApp.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using ReviewApp.Data;
 using ReviewApp.Interfaces;
 using ReviewApp.Models;
 
@@ -35,6 +36,11 @@ namespace ReviewApp.Repository
 
             context.Add(pokemon);
 
+            return Save();
+        }
+        public bool DeletePokemon(Pokemon pokemon)
+        {
+            context.Remove(pokemon);
             return Save();
         }
 
