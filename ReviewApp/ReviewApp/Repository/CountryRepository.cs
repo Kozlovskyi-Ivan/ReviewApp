@@ -1,4 +1,5 @@
-﻿using ReviewApp.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using ReviewApp.Data;
 using ReviewApp.Interfaces;
 using ReviewApp.Models;
 
@@ -20,6 +21,11 @@ namespace ReviewApp.Repository
         public bool CreateCountry(Country country)
         {
             context.Countries.Add(country);
+            return Save();
+        }
+        public bool DeleteCountry(Country country)
+        {
+            context.Remove(country);
             return Save();
         }
 

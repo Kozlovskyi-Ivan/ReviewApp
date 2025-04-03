@@ -1,4 +1,5 @@
-﻿using ReviewApp.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using ReviewApp.Data;
 using ReviewApp.Interfaces;
 using ReviewApp.Models;
 
@@ -16,6 +17,11 @@ namespace ReviewApp.Repository
         public bool CreateReviewer(Reviewer reviewer)
         {
             context.Reviewers.Add(reviewer);
+            return Save();
+        }
+        public bool DeleteReviewer(Reviewer reviewer)
+        {
+            context.Remove(reviewer);
             return Save();
         }
 
